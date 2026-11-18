@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://unpkg.com/ant-design-vue@4.2.6/dist/reset.css",
+    "local": "assets/unpkg.com/ant-design-vue@4.2.6/dist/reset.css",
+    "bytes": 3713,
+    "sha256": "76d99c4599dd3918bdee15703de7a9f0cc7fc490b4f55fc0ef02538b522e5109"
+  },
+  {
+    "url": "https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js",
+    "local": "assets/unpkg.com/vue@3.5.13/dist/vue.global.prod.js",
+    "bytes": 157924,
+    "sha256": "c459ba7cc8db65c982589fa5d64c7ff478877e8e5b0fd75683207cec6a4e89e8"
+  },
+  {
+    "url": "https://unpkg.com/dayjs@1.11.13/dayjs.min.js",
+    "local": "assets/unpkg.com/dayjs@1.11.13/dayjs.min.js",
+    "bytes": 7160,
+    "sha256": "9cfdb93f38afcf2d076abecd66d32bfd3383cdf1967654ebc26a26605daf4173"
+  },
+  {
+    "url": "https://unpkg.com/dayjs@1.11.13/locale/zh-cn.js",
+    "local": "assets/unpkg.com/dayjs@1.11.13/locale/zh-cn.js",
+    "bytes": 1463,
+    "sha256": "d93b074de4a1f0b5b7de810b1b4a7d180c6af6011b1f31a4455ca34e3411947b"
+  },
+  {
+    "url": "https://unpkg.com/dayjs@1.11.13/plugin/advancedFormat.js",
+    "local": "assets/unpkg.com/dayjs@1.11.13/plugin/advancedFormat.js",
+    "bytes": 1098,
+    "sha256": "6f9ca609c4af60f2a03033e72dec5714f4f8e7b240381934040f547a0282463f"
+  },
+  {
+    "url": "https://unpkg.com/dayjs@1.11.13/plugin/customParseFormat.js",
+    "local": "assets/unpkg.com/dayjs@1.11.13/plugin/customParseFormat.js",
+    "bytes": 3879,
+    "sha256": "b199a58d0fbbdc519a072eb9b140a2ca3d4775ea1b054a0c0e5aeed86603c941"
+  },
+  {
+    "url": "https://unpkg.com/dayjs@1.11.13/plugin/localeData.js",
+    "local": "assets/unpkg.com/dayjs@1.11.13/plugin/localeData.js",
+    "bytes": 2083,
+    "sha256": "16e8ff612ead60f8c36e8045c486e4320acd5e53e61db7d644d343236248e78a"
+  },
+  {
+    "url": "https://unpkg.com/dayjs@1.11.13/plugin/quarterOfYear.js",
+    "local": "assets/unpkg.com/dayjs@1.11.13/plugin/quarterOfYear.js",
+    "bytes": 772,
+    "sha256": "ac0de30250d6ae30a9c230efaace353a0914a461ac86e5e8c7c27b4ab37bd560"
+  },
+  {
+    "url": "https://unpkg.com/dayjs@1.11.13/plugin/weekOfYear.js",
+    "local": "assets/unpkg.com/dayjs@1.11.13/plugin/weekOfYear.js",
+    "bytes": 775,
+    "sha256": "fb7e9b4b213b2b7294fd5236bb4878b62e688292cf2c07745f0c7ff00762833f"
+  },
+  {
+    "url": "https://unpkg.com/dayjs@1.11.13/plugin/weekYear.js",
+    "local": "assets/unpkg.com/dayjs@1.11.13/plugin/weekYear.js",
+    "bytes": 395,
+    "sha256": "c3e73c56b2351e2bb14fd79bca54c6af4048202e77ce6da529785a85edb65ba1"
+  },
+  {
+    "url": "https://unpkg.com/dayjs@1.11.13/plugin/weekday.js",
+    "local": "assets/unpkg.com/dayjs@1.11.13/plugin/weekday.js",
+    "bytes": 427,
+    "sha256": "c5ffac8fb7deb86ff2920f6a4f123f9053ced09c81f6e784bf3b60b63ac49b96"
+  },
+  {
+    "url": "https://unpkg.com/ant-design-vue@4.2.6/dist/antd.min.js",
+    "local": "assets/unpkg.com/ant-design-vue@4.2.6/dist/antd.min.js",
+    "bytes": 1523067,
+    "sha256": "a3e41d25f15b62833e73a24c5b650141fc72d9261c1adb5d33d85aafc1f1a696"
+  }
+]
