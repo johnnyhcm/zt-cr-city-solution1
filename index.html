@@ -285,20 +285,25 @@
     .rule-list { padding:0 12px 6px; }
     .rule-list-header { display:flex; align-items:center; justify-content:space-between; padding:14px 0; }
     .rule-list-actions { display:flex; align-items:center; gap:8px; }
+    .rule-empty { padding:28px 0; }
+    .rule-empty .ant-btn { margin-top:8px; }
+    .tier-summary { font-variant-numeric:tabular-nums; overflow-wrap:anywhere; line-height:22px; }
+    .table-icon-btn { display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+    .table-icon-btn[disabled] { cursor:not-allowed; }
+    .table-icon-btn:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
     .country-select, .department-select { width:100%; }
-    .section-title { color:var(--text-1); font-weight:600; font-size:14px; margin:0; }
-    .section-title::before { content:''; display:inline-block; width:3px; height:12px; border-radius:2px; background:#197aff; margin-right:8px; vertical-align:-1px; }
+    .section-title { color:var(--text-title); font-weight:500; font-size:14px; margin:0; }
+    .section-title::before { content:''; display:inline-block; width:4px; height:22px; background:#197aff; margin:-3px 5px 0 0; vertical-align:middle; }
     .country-cell { font-weight:600; }
     .country-code { margin-left:8px; color:#666; font-size:11px; }
-    .coefficient-cell { font-variant-numeric:tabular-nums; }
     .muted { color:#666; }
     .overview-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; padding:4px 0 16px; }
     .field-label { display:block; color:#666; margin-bottom:5px; }
-    .readonly-country { display:flex; align-items:center; height:30px; padding:0 10px; border:1px solid #eee; border-radius:6px; background:#f5f7fd; }
     .enabled-control { display:flex; align-items:center; gap:8px; min-height:30px; }
     .base-city-field { padding-bottom:16px; }
     .base-city-control { display:flex; align-items:center; gap:12px; }
     .base-city-control .ant-select { width:220px; flex-shrink:0; }
+    .base-city-control .field-help { flex:1; }
     .field-help { color:var(--text-3); font-size:12px; line-height:20px; }
     .modal-section { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
     .tier-table { width:100%; border:1px solid #eee; border-radius:8px; overflow:hidden; border-spacing:0; table-layout:fixed; }
@@ -309,11 +314,11 @@
     .tier-table th:last-child { width:64px; }
     .tier-table .ant-input-number, .tier-table .ant-select { width:100%; }
     .tier-table .ant-select-selection-item { max-width:100%; }
-    .rule-modal .ant-modal-body { max-height:calc(100vh - 205px); overflow:auto; padding:1px; }
-    .field-error { color:#c42a32; margin-top:4px; }
+    .rule-modal { top:6vh; max-width:calc(100vw - 32px); padding-bottom:0; }
+    .rule-modal .ant-modal-body { max-height:calc(88vh - 120px); overflow:auto; padding:20px; }
+    .tier-table .table-icon-btn { margin:2px 0 0; }
+    .field-error { color:var(--error); margin-top:4px; line-height:20px; }
     .form-error { margin-top:12px; }
-    .example { border:1px solid #eee; border-radius:8px; padding:12px; background:#f5f7fd; font-variant-numeric:tabular-nums; }
-    .example strong { color:#0e66fb; }
     @media (max-width:700px) {
       .layout-left { display:none; }
       .header-history { display:none; }
@@ -357,7 +362,7 @@
         <div class="layout-view-main pulic-table-box">
           <a-card class="pulic-table-search-form card-shadow" size="small" :bordered="false">
             <template #title><span class="search-card-title"><i-filter /> 查询条件</span></template>
-            <a-form class="my-search-form vertical rule-search" layout="vertical" @finish="search">
+            <a-form :model="filters" class="my-search-form vertical rule-search" layout="vertical" @finish="search">
               <a-form-item label="二级部门">
                 <!-- 对应 DeptTreeSelect；单选测试部门，不含下级 -->
                 <a-tree-select v-model:value="filters.department" class="org-tree-module org-tree department-select"
@@ -372,7 +377,7 @@
                 <a-select v-model:value="filters.status" :options="statusOptions" placeholder="请选择启用状态" allow-clear />
               </a-form-item>
               <div class="query-actions">
-                <a-button @click="reset">重置</a-button>
+                <a-button @click="reset"><template #icon><i-reload /></template>重置</a-button>
                 <a-button type="primary" html-type="submit"><template #icon><i-search /></template>查询</a-button>
               </div>
             </a-form>
@@ -381,7 +386,6 @@
             <div class="rule-list-header">
               <h1 class="section-title">国家折算规则</h1>
               <div class="rule-list-actions">
-                <a-button type="link" size="small" @click="ruleOpen = true">规则说明</a-button>
                 <a-button type="primary" :disabled="!newCountryOptions.length" @click="openNewRule">
                   <template #icon><i-plus /></template>新增
                 </a-button>
@@ -389,6 +393,12 @@
             </div>
             <proto-table :columns="columns" :data-source="visibleCountries" :pagination="pagination"
               :scroll="{x:tableWidth}" :row-key="record => ruleKey(record.department, record.id)" @change="pageChanged">
+              <template #emptyText>
+                <div class="rule-empty">
+                  <a-empty :description="Object.values(appliedFilters).some(Boolean) ? '未找到符合条件的规则' : '暂无城市折算规则'" :image="simpleEmptyImage" />
+                  <a-button v-if="Object.values(appliedFilters).some(Boolean)" type="link" @click="reset">重置查询</a-button>
+                </div>
+              </template>
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'country'">
                   <span class="country-cell">{{ record.name }}</span><span class="country-code">{{ record.id }}</span>
@@ -396,13 +406,22 @@
                 <template v-else-if="column.key === 'status'">
                   <a-badge :status="record.enabled ? 'success' : 'default'" :text="record.enabled ? '已启用' : '未启用'" />
                 </template>
-                <template v-else-if="column.tierName !== undefined">
-                  <span class="coefficient-cell">{{ formatFactor(record.tiers.find(tier => tier.name === column.tierName)?.factor) }}</span>
+                <template v-else-if="column.key === 'baseCity'">
+                  {{ record.baseCity || '国家标准' }}
+                </template>
+                <template v-else-if="column.key === 'tiers'">
+                  <span class="tier-summary">{{ record.tiers.map(tier => tier.name + '：' + formatFactor(tier.factor)).join('；') || '--' }}</span>
                 </template>
                 <template v-else-if="column.key === 'action'">
                   <a-tooltip title="配置规则">
                     <button type="button" class="table-icon-btn" :aria-label="'配置规则 · ' + record.name"
                       @click="openEditor(record)"><i-edit /></button>
+                  </a-tooltip>
+                  <a-tooltip :title="record.enabled ? '请先停用方案后再删除' : '删除方案'">
+                    <span style="display:inline-flex">
+                      <button type="button" class="table-icon-btn is-danger" :aria-label="'删除方案 · ' + record.name"
+                        :disabled="record.enabled" @click="deleteRule(record)"><i-delete /></button>
+                    </span>
                   </a-tooltip>
                 </template>
               </template>
@@ -412,15 +431,15 @@
       </main>
     </div>
 
-    <a-modal v-if="draft" :open="true" class="rule-modal" :title="isAdding ? '新增城市折算规则' : '配置城市折算规则'" :width="800"
+    <a-modal v-if="draft" :open="true" class="custom-modal rule-modal" :title="isAdding ? '新增城市折算规则' : '配置城市折算规则'" :width="800"
       :mask-closable="false" ok-text="保存" cancel-text="取消" @ok="save" @cancel="draft = null">
       <div class="overview-row">
         <div>
           <span class="field-label" id="department-label"><span class="field-error">*</span> 二级部门</span>
-          <!-- 对应 DeptTreeSelect；保存方案部门并在编辑时回显 -->
+          <!-- 对应 DeptTreeSelect；新增可选，编辑回显且禁用 -->
           <a-tree-select v-model:value="draft.department" class="org-tree-module org-tree department-select"
             :tree-data="departmentOptions" :field-names="departmentFieldNames" tree-node-filter-prop="name"
-            aria-labelledby="department-label" placeholder="请选择二级部门" show-search
+            aria-labelledby="department-label" placeholder="请选择二级部门" show-search :disabled="!isAdding"
             :status="submitted && !draft.department ? 'error' : undefined" />
           <div v-if="submitted && !draft.department" class="field-error">请选择二级部门</div>
         </div>
@@ -429,7 +448,8 @@
           <a-select v-if="isAdding" class="country-select" :value="draft.id" :options="newCountryOptions"
             aria-labelledby="country-label" placeholder="请选择国家" option-filter-prop="label" show-search
             :status="submitted && !draft.id ? 'error' : undefined" @change="selectDraftCountry" />
-          <div v-else class="readonly-country">{{ draft.name }}<span class="country-code">{{ draft.id }}</span></div>
+          <a-select v-else class="country-select" :value="draft.id" disabled aria-labelledby="country-label"
+            :options="[{ value: draft.id, label: draft.name + ' ' + draft.id }]" />
           <div v-if="submitted && !draft.id" class="field-error">请选择国家</div>
         </div>
         <div><span class="field-label" id="enabled-label">启用城市折算</span>
@@ -452,7 +472,6 @@
       <div class="modal-section">
         <h2 class="section-title">城市档位与折算系数</h2>
         <div class="rule-list-actions">
-          <a-button type="link" size="small" @click="ruleOpen = true">规则说明</a-button>
           <a-button size="small" @click="addTier"><template #icon><i-plus /></template>新增档位</a-button>
         </div>
       </div>
@@ -482,7 +501,9 @@
               <div v-if="submitted && tierCityError(tier)" class="field-error">{{ tierCityError(tier) }}</div>
             </td>
             <td>
-              <a-button type="link" danger size="small" :aria-label="'删除第' + (index + 1) + '行档位'" @click="removeTier(tier)">删除</a-button>
+              <a-tooltip v-if="draft.tiers.length > 1" title="删除档位">
+                <button type="button" class="table-icon-btn is-danger" :aria-label="'删除第' + (index + 1) + '行档位'" @click="removeTier(tier)"><i-delete /></button>
+              </a-tooltip>
             </td>
           </tr>
           <tr v-if="!draft.tiers.length"><td colspan="4" style="text-align:center" class="muted">暂无档位，请点击“新增档位”</td></tr>
@@ -491,17 +512,6 @@
       <div v-if="submitted && !draft.tiers.length" class="field-error">请至少新增一个档位并填写配置</div>
     </a-modal>
 
-    <a-drawer v-model:open="ruleOpen" title="城市折算规则说明" :width="360" :z-index="1200">
-      <p>同一二级部门、国家的不同职级、职类共用一套城市档位和系数。档位名称和数量可自行配置。</p>
-      <p>以某个城市作为折算基准，若为空，则以国家标准为基准。国家标准指同部门、同国家下地区为空的记录。</p>
-      <p>同一个城市只能归入一档。调整档位时，先从原档移除，再选入目标档。</p>
-      <p>档位名称必填且不能重复，系数须大于 0、允许大于 1，每个档位至少选择一个城市，无需归档全部城市。</p>
-      <p>基准城市可以加入档位，执行折算时跳过基准城市，保留其原值。删除档位仅取消配置，已有中位薪记录保留。</p>
-      <div class="example">
-        <strong>折算示例</strong>
-        <p style="margin:8px 0 0">某国月薪基准 4,000 欧元，B 档系数为 0.90，该城市月薪标准为 3,600 欧元。</p>
-      </div>
-    </a-drawer>
   </a-config-provider>
 </script>
 <script>
@@ -571,7 +581,7 @@
     template: '#page-tpl',
     data() {
       return {
-        zhCN, rules: readRules(), ruleOpen: false,
+        zhCN, rules: readRules(), simpleEmptyImage: antd.Empty.PRESENTED_IMAGE_SIMPLE,
         departmentOptions: [{ name: defaultDepartment, poidOrgAdminNameTreePath: defaultDepartment }],
         departmentFieldNames: { label: 'name', value: 'poidOrgAdminNameTreePath' },
         theme: { token: { colorPrimary: '#0E66FB', colorSuccess: '#00b259', fontSize: 12, controlHeight: 30, borderRadius: 6 } },
@@ -582,13 +592,13 @@
     },
     computed: {
       columns() {
-        const names = [...new Set(Object.values(this.rules).flatMap(rule => rule.tiers.map(tier => tier.name)))];
         return [
-          { title: '二级部门', dataIndex: 'department', key: 'department', width: 220 },
-          { title: '国家', key: 'country', width: 150 },
+          { title: '二级部门', dataIndex: 'department', key: 'department', width: 220, fixed: 'left' },
+          { title: '国家', key: 'country', width: 150, fixed: 'left' },
+          { title: '基准城市', key: 'baseCity', width: 140 },
           { title: '启用状态', key: 'status', width: 120 },
-          ...names.map(name => ({ title: name + ' 系数', key: 'tier:' + name, tierName: name, align: 'right', width: 120 })),
-          { title: '操作', key: 'action', align: 'center', width: 80 }
+          { title: '档位：系数', key: 'tiers', width: 400 },
+          { title: '操作', key: 'action', align: 'center', width: 100, fixed: 'right' }
         ];
       },
       tableWidth() {
@@ -652,12 +662,34 @@
         this.draft = JSON.parse(JSON.stringify(country));
         this.draft.baseCity = country.baseCity || undefined;
       },
+      deleteRule(rule) {
+        if (rule.enabled) return;
+        antd.Modal.confirm({
+          content: '将删除“' + rule.department + ' / ' + rule.name + '”的全部城市折算规则。',
+          okText: '删除', cancelText: '取消', okType: 'danger',
+          onOk: close => {
+            const updatedRules = { ...this.rules };
+            delete updatedRules[ruleKey(rule.department, rule.id)];
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(updatedRules));
+            } catch {
+              antd.message.error('删除失败：浏览器无法保存配置');
+              return;
+            }
+            this.rules = updatedRules;
+            this.page = Math.min(this.page, Math.max(1, Math.ceil(this.visibleCountries.length / this.pagination.pageSize)));
+            close();
+            antd.message.success('城市折算方案已删除');
+          }
+        });
+      },
       addTier() {
         const tier = createTier();
         this.draft.tiers.push(tier);
         this.$nextTick(() => document.getElementById('tier-name-' + tier.uid)?.focus());
       },
       removeTier(tier) {
+        if (this.draft.tiers.length <= 1) return;
         const remove = () => {
           this.draft.tiers = this.draft.tiers.filter(item => item.uid !== tier.uid);
         };
@@ -666,8 +698,7 @@
           return;
         }
         antd.Modal.confirm({
-          title: '删除档位',
-          content: '删除该档位及其城市归档配置？已有中位薪记录将保留。',
+          content: tier.name.trim() ? '将删除 ' + tier.name.trim() + '档位及其城市配置。' : '将删除该档位及其城市配置。',
           okText: '删除', cancelText: '取消', okType: 'danger', onOk: remove
         });
       },
@@ -695,11 +726,22 @@
           disabled: usedElsewhere.has(city)
         }));
       },
+      focusFirstError() {
+        this.$nextTick(() => {
+          const field = document.querySelector('.rule-modal .ant-select-status-error input, .rule-modal input.ant-input-status-error, .rule-modal .ant-input-number-status-error input');
+          const target = field || document.querySelector('.rule-modal .field-error:not(.field-label .field-error)');
+          target?.scrollIntoView({ block: 'center', behavior: 'auto' });
+          field?.focus({ preventScroll: true });
+        });
+      },
       save() {
         this.submitted = true;
         const { department, id, enabled, tiers, baseCity } = this.draft;
         if (!department || !id || !tiers.length || tiers.some(tier =>
-          this.tierNameError(tier) || !this.validFactor(tier.factor) || this.tierCityError(tier))) return;
+          this.tierNameError(tier) || !this.validFactor(tier.factor) || this.tierCityError(tier))) {
+          this.focusFirstError();
+          return;
+        }
         const updatedRules = { ...this.rules, [ruleKey(department, id)]: {
           department, id, enabled, baseCity: baseCity || '',
           tiers: tiers.map(tier => ({ ...tier, name: tier.name.trim(), cities: [...tier.cities] }))
