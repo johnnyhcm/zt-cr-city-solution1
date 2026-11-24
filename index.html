@@ -311,12 +311,14 @@
     .tier-table td { border-top:1px solid #eee; padding:10px 12px; vertical-align:top; }
     .tier-table th:first-child { width:140px; }
     .tier-table th:nth-child(2) { width:130px; }
-    .tier-table th:last-child { width:64px; }
+    .tier-table th:last-child { width:120px; }
     .tier-table .ant-input-number, .tier-table .ant-select { width:100%; }
     .tier-table .ant-select-selection-item { max-width:100%; }
     .rule-modal { top:6vh; max-width:calc(100vw - 32px); padding-bottom:0; }
     .rule-modal .ant-modal-body { max-height:calc(88vh - 120px); overflow:auto; padding:20px; }
     .tier-table .table-icon-btn { margin:2px 0 0; }
+    .tier-actions { display:flex; align-items:center; gap:4px; padding-top:2px; }
+    .tier-actions .table-icon-btn { margin:0; }
     .field-error { color:var(--error); margin-top:4px; line-height:20px; }
     .form-error { margin-top:12px; }
     @media (max-width:700px) {
@@ -502,9 +504,19 @@
               <div v-if="submitted && draft.id && tierCityError(tier)" class="field-error">{{ tierCityError(tier) }}</div>
             </td>
             <td>
-              <a-tooltip v-if="draft.tiers.length > 1" title="删除档位">
-                <button type="button" class="table-icon-btn is-danger" :aria-label="'删除第' + (index + 1) + '行档位'" @click="removeTier(tier)"><i-delete /></button>
-              </a-tooltip>
+              <div class="tier-actions">
+                <a-tooltip title="上移档位">
+                  <span><button type="button" class="table-icon-btn" :aria-label="'上移第' + (index + 1) + '行档位'"
+                    :disabled="!draft.id || index === 0" @click="moveTier(index, -1)"><i-arrow-up /></button></span>
+                </a-tooltip>
+                <a-tooltip title="下移档位">
+                  <span><button type="button" class="table-icon-btn" :aria-label="'下移第' + (index + 1) + '行档位'"
+                    :disabled="!draft.id || index === draft.tiers.length - 1" @click="moveTier(index, 1)"><i-arrow-down /></button></span>
+                </a-tooltip>
+                <a-tooltip v-if="draft.tiers.length > 1" title="删除档位">
+                  <button type="button" class="table-icon-btn is-danger" :aria-label="'删除第' + (index + 1) + '行档位'" @click="removeTier(tier)"><i-delete /></button>
+                </a-tooltip>
+              </div>
             </td>
           </tr>
           <tr v-if="!draft.tiers.length"><td colspan="4" style="text-align:center" class="muted">暂无档位，请点击“新增档位”</td></tr>
@@ -690,6 +702,12 @@
         this.draft.tiers.push(tier);
         this.$nextTick(() => document.getElementById('tier-name-' + tier.uid)?.focus());
       },
+      moveTier(index, step) {
+        const target = index + step;
+        if (!this.draft.id || target < 0 || target >= this.draft.tiers.length) return;
+        const [tier] = this.draft.tiers.splice(index, 1);
+        this.draft.tiers.splice(target, 0, tier);
+      },
       removeTier(tier) {
         if (this.draft.tiers.length <= 1) return;
         const remove = () => {
@@ -787,6 +805,9 @@
     'i-filter': ['64 64 896 896', '<path d="M880 112H144c-17.7 0-32 14.3-32 32v120.5c0 16.5 7.7 32.2 20.9 42.3L400 507.3V848c0 16.7 8.7 32.2 23 40.7l120 71.4c19.7 11.7 45-2.5 45-25.3V507.3l267.1-200.5c13.2-10.1 20.9-25.8 20.9-42.3V144c0-17.7-14.3-32-32-32z"/>'],
     // @ant-design/icons-svg/es/asn/SettingOutlined.js
     'i-setting': ['64 64 896 896', '<path d="M924.8 625.7l-65.5-56c3.1-19 4.7-38.4 4.7-57.8s-1.6-38.8-4.7-57.8l65.5-56a32.03 32.03 0 009.3-35.2l-.9-2.6a443.74 443.74 0 00-79.7-137.9l-1.8-2.1a32.12 32.12 0 00-35.1-9.5l-81.3 28.9c-30-24.6-63.5-44-99.7-57.6l-15.7-85a32.05 32.05 0 00-25.8-25.7l-2.7-.5c-52.1-9.4-106.9-9.4-159 0l-2.7.5a32.05 32.05 0 00-25.8 25.7l-15.8 85.4a351.86 351.86 0 00-99 57.4l-81.9-29.1a32 32 0 00-35.1 9.5l-1.8 2.1a446.02 446.02 0 00-79.7 137.9l-.9 2.6c-4.5 12.5-.8 26.5 9.3 35.2l66.3 56.6c-3.1 18.8-4.6 38-4.6 57.1 0 19.2 1.5 38.4 4.6 57.1L99 625.5a32.03 32.03 0 00-9.3 35.2l.9 2.6c18.1 50.4 44.9 96.9 79.7 137.9l1.8 2.1a32.12 32.12 0 0035.1 9.5l81.9-29.1c29.8 24.5 63.1 43.9 99 57.4l15.8 85.4a32.05 32.05 0 0025.8 25.7l2.7.5a449.4 449.4 0 00159 0l2.7-.5a32.05 32.05 0 0025.8-25.7l15.7-85a350 350 0 0099.7-57.6l81.3 28.9a32 32 0 0035.1-9.5l1.8-2.1c34.8-41.1 61.6-87.5 79.7-137.9l.9-2.6c4.5-12.3.8-26.3-9.3-35zM788.3 465.9c2.5 15.1 3.8 30.6 3.8 46.1s-1.3 31-3.8 46.1l-6.6 40.1 74.7 63.9a370.03 370.03 0 01-42.6 73.6L721 702.8l-31.4 25.8c-23.9 19.6-50.5 35-79.3 45.8l-38.1 14.3-17.9 97a377.5 377.5 0 01-85 0l-17.9-97.2-37.8-14.5c-28.5-10.8-55-26.2-78.7-45.7l-31.4-25.9-93.4 33.2c-17-22.9-31.2-47.6-42.6-73.6l75.5-64.5-6.5-40c-2.4-14.9-3.7-30.3-3.7-45.5 0-15.3 1.2-30.6 3.7-45.5l6.5-40-75.5-64.5c11.3-26.1 25.6-50.7 42.6-73.6l93.4 33.2 31.4-25.9c23.7-19.5 50.2-34.9 78.7-45.7l37.9-14.3 17.9-97.2c28.1-3.2 56.8-3.2 85 0l17.9 97 38.1 14.3c28.7 10.8 55.4 26.2 79.3 45.8l31.4 25.8 92.8-32.9c17 22.9 31.2 47.6 42.6 73.6L781.8 426l6.5 39.9zM512 326c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm79.2 255.2A111.6 111.6 0 01512 614c-29.9 0-58-11.7-79.2-32.8A111.6 111.6 0 01400 502c0-29.9 11.7-58 32.8-79.2C454 401.6 482.1 390 512 390c29.9 0 58 11.6 79.2 32.8A111.6 111.6 0 01624 502c0 29.9-11.7 58-32.8 79.2z"/>'],
+    // 档位排序箭头
+    'i-arrow-up': ['0 0 16 16', '<path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'],
+    'i-arrow-down': ['0 0 16 16', '<path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'],
     // DeleteOutlined
     'i-delete': ['64 64 896 896', '<path d="M360 184h-8c4.4 0 8-3.6 8-8v8h304v-8c0 4.4 3.6 8 8 8h-8v72h72v-80c0-35.3-28.7-64-64-64H352c-35.3 0-64 28.7-64 64v80h72v-72zm504 72H160c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h60.4l24.7 523c1.6 34.1 29.8 61 63.9 61h454c34.2 0 62.3-26.8 63.9-61l24.7-523H888c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32zM731.3 840H292.7l-24.2-512h487l-24.2 512z"/>'],
     // EyeOutlined

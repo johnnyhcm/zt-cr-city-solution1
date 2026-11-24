@@ -12,6 +12,7 @@
 
 - 方案按 `JSON.stringify([department, id])` 唯一识别；包含 `department`、国家 `id`、`enabled`、`baseCity`、`tiers`。
 - `baseCity` 空字符串代表国家标准。`tiers` 是有序数组，每项 `{ uid, name, factor, cities }`，uid用于稳定渲染和焦点定位。
+- 档位上移／下移只调整弹窗草稿中`tiers`的数组顺序，每次移动一个完整对象，沿用uid与现有保存流程；不新增排序字段。边界及未选国家时禁止移动，取消不写入存储。
 - 本目录使用独立键 `hrone-city-rules-config-only-v1`，不写原部门版键、国家版键或完整流程大表键。
 - 首次无独立数据时，依次读取 `hrone-prototype-city-salary-rules-department-v2`、`hrone-prototype-city-salary-rules-v1`，再回退内置数据；将旧固定档位转换为数组，补齐部门和空基准，并保存独立副本。
 - 浏览器禁止存储时可使用内置或读到的配置演示；用户保存失败会反馈错误。

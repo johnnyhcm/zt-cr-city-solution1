@@ -112,6 +112,8 @@ const { chromium } = require('playwright');
     }
     assert.equal(await modal.locator('.tier-table tbody tr').count(), 1);
     assert.equal(await modal.getByRole('button', { name: /删除第.*行档位/ }).count(), 0);
+    assert.equal(await modal.getByRole('button', { name: '上移第1行档位', exact: true }).isDisabled(), true);
+    assert.equal(await modal.getByRole('button', { name: '下移第1行档位', exact: true }).isDisabled(), true);
     await modal.getByRole('button', { name: '新增档位', exact: true }).click();
     assert.equal(await modal.getByRole('button', { name: /删除第.*行档位/ }).count(), 2);
     await modal.getByRole('button', { name: '删除第2行档位', exact: true }).click();
@@ -147,6 +149,41 @@ const { chromium } = require('playwright');
     await modal.getByRole('button', { name: /取\s*消/, exact: true }).click();
     console.log('PASS 保存、刷新回显与方案存储隔离');
 
+    const beforeSort = await page.evaluate(key => localStorage.getItem(key), key);
+    const originalTiers = JSON.parse(beforeSort)[JSON.stringify(['LBU速运事业部', 'DE'])].tiers;
+    const tierValues = async () => Promise.all((await modal.locator('.tier-table tbody tr').all()).map(async row => ({
+      name: await row.locator('.ant-input').inputValue(),
+      factor: Number(await row.locator('.ant-input-number-input').inputValue()),
+      cities: await row.locator('.ant-select-selection-item-content').allTextContents()
+    })));
+    const displayedTiers = tiers => tiers.map(({ name, factor, cities }) => ({ name, factor, cities }));
+    await page.getByRole('button', { name: '配置规则 · 德国', exact: true }).click();
+    assert.equal(await modal.getByRole('button', { name: '上移第1行档位', exact: true }).isDisabled(), true);
+    assert.equal(await modal.getByRole('button', { name: '下移第4行档位', exact: true }).isDisabled(), true);
+    await modal.getByRole('button', { name: '下移第1行档位', exact: true }).click();
+    assert.deepEqual(await tierValues(), displayedTiers([originalTiers[1], originalTiers[0], originalTiers[2], originalTiers[3]]));
+    await modal.getByRole('button', { name: '上移第3行档位', exact: true }).click();
+    assert.deepEqual(await tierValues(), displayedTiers([originalTiers[1], originalTiers[2], originalTiers[0], originalTiers[3]]));
+    await modal.getByRole('button', { name: /取\s*消/, exact: true }).click();
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), key), beforeSort, '取消不保存排序');
+    await page.getByRole('button', { name: '配置规则 · 德国', exact: true }).click();
+    assert.deepEqual(await tierValues(), displayedTiers(originalTiers));
+    await modal.getByRole('button', { name: '上移第4行档位', exact: true }).click();
+    await modal.getByRole('button', { name: '下移第1行档位', exact: true }).click();
+    const sortedTiers = [originalTiers[1], originalTiers[0], originalTiers[3], originalTiers[2]];
+    await modal.getByRole('button', { name: /保\s*存/, exact: true }).click();
+    await modal.waitFor({ state: 'hidden' });
+    const afterSort = JSON.parse(await page.evaluate(key => localStorage.getItem(key), key));
+    const expectedSortedRules = JSON.parse(beforeSort);
+    expectedSortedRules[JSON.stringify(['LBU速运事业部', 'DE'])].tiers = sortedTiers;
+    assert.deepEqual(afterSort, expectedSortedRules, '排序只改变当前方案档位顺序');
+    assert.equal(await rows.filter({ hasText: '德国' }).locator('.tier-summary').innerText(), 'B：0.95；A：1.00；D：0.70；C：0.80');
+    await page.reload();
+    await page.getByRole('button', { name: '配置规则 · 德国', exact: true }).click();
+    assert.deepEqual(await tierValues(), displayedTiers(sortedTiers), '刷新后顺序与完整档位内容保持一致');
+    await modal.getByRole('button', { name: /取\s*消/, exact: true }).click();
+    console.log('PASS 档位上下移、边界禁用、完整内容关联、取消及保存刷新与列表顺序');
+
     const table = page.locator('.ant-table-content');
     await table.evaluate(element => { element.scrollLeft = element.scrollWidth; });
     const fixedVisible = await page.locator('tr[data-row-key]').first().evaluate(row => {
@@ -163,6 +200,8 @@ const { chromium } = require('playwright');
     assert.equal(await modal.locator('.country-select input').isDisabled(), false, '新增时仍可选择国家');
     assert.equal(await modal.getByRole('switch').getAttribute('aria-checked'), 'true', '新增方案默认已启用');
     assert.equal(await modal.getByRole('button', { name: /删除第.*行档位/ }).count(), 0, '新增时唯一空白档位也不允许删除');
+    assert.equal(await modal.getByRole('button', { name: '上移第1行档位', exact: true }).isDisabled(), true);
+    assert.equal(await modal.getByRole('button', { name: '下移第1行档位', exact: true }).isDisabled(), true);
     const tierName = modal.getByLabel('第1行档位名称', { exact: true });
     const tierFactor = modal.getByLabel('第1行折算系数', { exact: true });
     const tierCities = modal.locator('.tier-table .ant-select input').first();
