@@ -472,9 +472,10 @@
       <div class="modal-section">
         <h2 class="section-title">城市档位与折算系数</h2>
         <div class="rule-list-actions">
-          <a-button size="small" @click="addTier"><template #icon><i-plus /></template>新增档位</a-button>
+          <a-button size="small" :disabled="!draft.id" @click="addTier"><template #icon><i-plus /></template>新增档位</a-button>
         </div>
       </div>
+      <p v-if="!draft.id" class="field-help" style="margin:0 0 10px">请先选择国家，再配置档位、系数和城市。</p>
       <table class="tier-table">
         <thead><tr><th scope="col"><span class="field-error">*</span> 档位名称</th><th scope="col"><span class="field-error">*</span> 折算系数</th><th scope="col"><span class="field-error">*</span> 适用城市</th><th scope="col">操作</th></tr></thead>
         <tbody>
@@ -482,23 +483,23 @@
             <td>
               <!-- 对应 MyInput；档位名称可编辑 -->
               <a-input v-model:value="tier.name" class="my-input-components" :id="'tier-name-' + tier.uid"
-                :aria-label="'第' + (index + 1) + '行档位名称'" placeholder="请输入档位名称"
-                :status="submitted && tierNameError(tier) ? 'error' : undefined" />
-              <div v-if="submitted && tierNameError(tier)" class="field-error">{{ tierNameError(tier) }}</div>
+                :aria-label="'第' + (index + 1) + '行档位名称'" placeholder="请输入档位名称" :disabled="!draft.id"
+                :status="submitted && draft.id && tierNameError(tier) ? 'error' : undefined" />
+              <div v-if="submitted && draft.id && tierNameError(tier)" class="field-error">{{ tierNameError(tier) }}</div>
             </td>
             <td>
               <a-input-number v-model:value="tier.factor" :step="0.01" placeholder="请输入"
                 :aria-label="'第' + (index + 1) + '行折算系数'" :disabled="!draft.id"
-                :status="submitted && !validFactor(tier.factor) ? 'error' : undefined" />
-              <div v-if="submitted && !validFactor(tier.factor)" class="field-error">请输入大于 0 的系数</div>
+                :status="submitted && draft.id && !validFactor(tier.factor) ? 'error' : undefined" />
+              <div v-if="submitted && draft.id && !validFactor(tier.factor)" class="field-error">请输入大于 0 的系数</div>
             </td>
             <td>
               <!-- 对应多选下拉 a-select；按当前国家筛选工作城市 -->
               <a-select v-model:value="tier.cities" mode="multiple" show-search allow-clear
                 :aria-label="'第' + (index + 1) + '行适用城市'" :disabled="!draft.id" option-filter-prop="label" :placeholder="draft.id ? '请选择适用城市' : '请先选择国家'"
-                :status="submitted && tierCityError(tier) ? 'error' : undefined"
+                :status="submitted && draft.id && tierCityError(tier) ? 'error' : undefined"
                 :options="cityOptions(tier)" />
-              <div v-if="submitted && tierCityError(tier)" class="field-error">{{ tierCityError(tier) }}</div>
+              <div v-if="submitted && draft.id && tierCityError(tier)" class="field-error">{{ tierCityError(tier) }}</div>
             </td>
             <td>
               <a-tooltip v-if="draft.tiers.length > 1" title="删除档位">
@@ -684,6 +685,7 @@
         });
       },
       addTier() {
+        if (!this.draft.id) return;
         const tier = createTier();
         this.draft.tiers.push(tier);
         this.$nextTick(() => document.getElementById('tier-name-' + tier.uid)?.focus());
