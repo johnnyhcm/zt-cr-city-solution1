@@ -395,8 +395,8 @@
               :scroll="{x:tableWidth}" :row-key="record => ruleKey(record.department, record.id)" @change="pageChanged">
               <template #emptyText>
                 <div class="rule-empty">
-                  <a-empty :description="Object.values(appliedFilters).some(Boolean) ? '未找到符合条件的规则' : '暂无城市折算规则'" :image="simpleEmptyImage" />
-                  <a-button v-if="Object.values(appliedFilters).some(Boolean)" type="link" @click="reset">重置查询</a-button>
+                  <a-empty :description="Object.keys(rules).length ? '未找到符合条件的规则' : '暂无城市折算规则'" :image="simpleEmptyImage" />
+                  <a-button v-if="Object.keys(rules).length && Object.values(appliedFilters).some(Boolean)" type="link" @click="reset">重置查询</a-button>
                 </div>
               </template>
               <template #bodyCell="{ column, record }">
@@ -586,7 +586,7 @@
         departmentOptions: [{ name: defaultDepartment, poidOrgAdminNameTreePath: defaultDepartment }],
         departmentFieldNames: { label: 'name', value: 'poidOrgAdminNameTreePath' },
         theme: { token: { colorPrimary: '#0E66FB', colorSuccess: '#00b259', fontSize: 12, controlHeight: 30, borderRadius: 6 } },
-        filters: {}, appliedFilters: {}, page: 1, draft: null, isAdding: false, submitted: false,
+        filters: { status: 'enabled' }, appliedFilters: { status: 'enabled' }, page: 1, draft: null, isAdding: false, submitted: false,
         countryOptions: cityCatalog.map(country => ({ label: country.name, value: country.id })),
         statusOptions: [{ label: '已启用', value: 'enabled' }, { label: '未启用', value: 'disabled' }]
       };
@@ -631,7 +631,7 @@
         this.page = 1;
       },
       reset() {
-        this.filters = {};
+        this.filters = { status: 'enabled' };
         this.search();
       },
       pageChanged(pagination) {
@@ -758,7 +758,7 @@
         if (this.isAdding) {
           this.reset();
           const index = this.visibleCountries.findIndex(country => country.id === id);
-          this.page = Math.floor(index / this.pagination.pageSize) + 1;
+          this.page = Math.max(1, Math.floor(index / this.pagination.pageSize) + 1);
         }
         this.draft = null;
         antd.message.success('城市折算规则已保存');
